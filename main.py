@@ -6,28 +6,26 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 
 os.environ["SDL_VIDEO_CENTERED"] = '1'
-black, white, blue, green, red, gray, silver = (20, 20, 20), (230, 230, 230), (0, 154, 255), \
+BLACK, WHITE, BLUE, GREEN, RED, GRAY, SILVER = (20, 20, 20), (230, 230, 230), (0, 154, 255), \
                                                (38, 230, 0), (255, 0, 0), (128, 128, 128), (192, 192, 192)
-# width, height = 1920, 1080
-width, height = 1200, 800
+LINE_THICKNESS = 2
+WIDTH, HEIGHT = 1200, 800
+FPS = 60
+SCALE = 600
+SPEED = 0.05
+RADIAN = 180 / math.pi
 
 pygame.init()
-
 pygame.display.set_caption("OBJren")
-screen = pygame.display.set_mode((width, height))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 font = pygame.font.SysFont("monospace", 24, bold=True)
-
 clock = pygame.time.Clock()
-fps = 60
 
 pos_x, pos_y, old_x, old_y = 0, 0, 0, 0
 angles = [0, 0, 0]
-position = [width // 2, height // 2]
-scale = 600
-speed = 0.05
-radian = 180 / math.pi
+position = [WIDTH // 2, HEIGHT // 2]
 drag_counter = 0
-building = False  # set true to always draw objects
+building = False  # used for drawing objects, False -> no drawing
 lines = []
 points = []
 projected_points = []
@@ -41,7 +39,7 @@ def get_file():
     return path
 
 
-# Import
+# Imports obj if valid format
 def import_obj():
     global points, lines, projected_points, angles, distance
     name = get_file()
@@ -55,7 +53,6 @@ def import_obj():
         if line[0] == "v":
             p = line[2:].split()
             p = [[float(x)] for x in p]
-            # p[1][0] -= 20
             points.append(p)
         if line[0] == "f":
             if line.find("/") != -1:
@@ -78,40 +75,42 @@ def import_obj():
 def connect_point(i, j, k):
     a = k[i]
     b = k[j]
-    pygame.draw.line(screen, black, (a[0], a[1]), (b[0], b[1]), 2)
+    pygame.draw.line(screen, BLACK, (a[0], a[1]), (b[0], b[1]), LINE_THICKNESS)
 
 
 unit = [[1, 0, 0],
         [0, 1, 0],
         [0, 0, 1]]
 
-xV = unit
-yV = unit
-zV = unit
+x_matrix = unit
+y_matrix = unit
+z_matrix = unit
 
-imgX = font.render('X-rotation: Use    and      arrow keys', True, black)
-imgY = font.render('Y-rotation: Use      and       arrow keys', True, black)
-imgZ = font.render('Z-rotation: Use   and  ', True, black)
-imgD = font.render('Depth/POV: Use mouse wheel', True, black)
-imgC = font.render('Camera: Click and drag', True, black)
+x_text = font.render('X-rotation: Use    and      arrow keys', True, BLACK)
+y_text = font.render('Y-rotation: Use      and       arrow keys', True, BLACK)
+z_text = font.render('Z-rotation: Use   and  ', True, BLACK)
+depth_text = font.render('Depth/POV: Use mouse wheel', True, BLACK)
+camera_text = font.render('Camera: Click and drag', True, BLACK)
 button = pygame.Rect(20, 140, 200, 50)
 button_shade = pygame.Rect(25, 145, 200, 50)
-insert_txt = font.render('IMPORT OBJ', True, black)
+insert_txt = font.render('IMPORT OBJ', True, BLACK)
 
 count = 0
 distance = 15.1
 drag = False
 run = True
 while run:
-    clock.tick(fps)
-    screen.fill(white)
+    clock.tick(FPS)
+    screen.fill(WHITE)
     x_button, y_button = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 4: distance -= 2
-            if event.button == 5: distance += 2
+            if event.button == 4:
+                distance -= 2
+            if event.button == 5:
+                distance += 2
             if event.button == 1:
                 if button.collidepoint(x_button, y_button):
                     import_obj()
@@ -121,12 +120,12 @@ while run:
         if event.type == pygame.MOUSEBUTTONUP:
             drag = False
 
-    img_r = font.render('right', True, black)
-    img_l = font.render('left', True, black)
-    img_u = font.render('up', True, black)
-    img_d = font.render('down', True, black)
-    img_z = font.render('Z', True, black)
-    img_x = font.render('X', True, black)
+    right_text = font.render('right', True, BLACK)
+    left_text = font.render('left', True, BLACK)
+    up_text = font.render('up', True, BLACK)
+    down_text = font.render('down', True, BLACK)
+    letter_z_text = font.render('Z', True, BLACK)
+    letter_x_text = font.render('X', True, BLACK)
 
     rotation_x = [[1, 0, 0],
                   [0, math.cos(angles[1]), -math.sin(angles[1])],
@@ -139,7 +138,7 @@ while run:
                   [math.sin(angles[0]), 0, math.cos(angles[0])]]
 
     rotation_y2 = [*zip(*rotation_y)]
-    #
+
     rotation_z = [[math.cos(angles[2]), -math.sin(angles[2]), 0],
                   [math.sin(angles[2]), math.cos(angles[2]), 0],
                   [0, 0, 1]]
@@ -149,29 +148,29 @@ while run:
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_LEFT]:
-        yV = rotation_y2
-        angles[0] -= speed
-        img_l = font.render('left', True, green)
+        y_matrix = rotation_y2
+        angles[0] -= SPEED
+        left_text = font.render('left', True, GREEN)
     if keys[pygame.K_RIGHT]:
-        yV = rotation_y2
-        angles[0] += speed
-        img_r = font.render('right', True, green)
+        y_matrix = rotation_y2
+        angles[0] += SPEED
+        right_text = font.render('right', True, GREEN)
     if keys[pygame.K_UP]:
-        xV = rotation_x2
-        angles[1] -= speed
-        img_u = font.render('up', True, green)
+        x_matrix = rotation_x2
+        angles[1] -= SPEED
+        up_text = font.render('up', True, GREEN)
     if keys[pygame.K_DOWN]:
-        xV = rotation_x2
-        angles[1] += speed
-        img_d = font.render('down', True, green)
+        x_matrix = rotation_x2
+        angles[1] += SPEED
+        down_text = font.render('down', True, GREEN)
     if keys[pygame.K_z]:
-        zV = rotation_z2
-        angles[2] -= speed
-        img_z = font.render('Z', True, green)
+        z_matrix = rotation_z2
+        angles[2] -= SPEED
+        z_text = font.render('Z', True, GREEN)
     if keys[pygame.K_x]:
-        zV = rotation_z2
-        angles[2] += speed
-        img_x = font.render('X', True, green)
+        z_matrix = rotation_z2
+        angles[2] += SPEED
+        x_text = font.render('X', True, GREEN)
 
     # Position adjustment
     if drag:
@@ -198,58 +197,60 @@ while run:
 
     index = 0
     for point in points:
-        rotated_2d = matrix_multiplication(matrix_multiplication(rotation_z, matrix_multiplication(yV, xV)), point)
+        rotated_2d = matrix_multiplication(matrix_multiplication(rotation_z, matrix_multiplication(y_matrix, x_matrix)),
+                                           point)
 
         z = 1 / (distance - rotated_2d[2][0])
         projection_matrix = [[z, 0, 0],
                              [0, -z, 0]]
         projected_2d = matrix_multiplication(projection_matrix, rotated_2d)
 
-        x = int(projected_2d[0][0] * scale) + position[0]
-        y = int(projected_2d[1][0] * scale) + position[1]
+        x = int(projected_2d[0][0] * SCALE) + position[0]
+        y = int(projected_2d[1][0] * SCALE) + position[1]
         projected_points[index] = [x, y]
-        pygame.draw.circle(screen, red, (x, y), 2)
+        pygame.draw.circle(screen, RED, (x, y), 2)
         index += 1
 
     if building:
-        building_img = font.render(f'BUILDING OBJECT', True, black)
+        building_img = font.render(f'BUILDING OBJECT', True, BLACK)
         screen.blit(building_img, (20, 20))
 
     for line in lines:
         connect_point(line[0], line[1], projected_points)
-        if building: pygame.display.update()
+        if building:
+            pygame.display.update()
     building = False
 
     if button.collidepoint(x_button, y_button):
         button = pygame.Rect(22, 142, 200, 50)
-        pygame.draw.rect(screen, gray, button_shade)
-        pygame.draw.rect(screen, silver, button)
+        pygame.draw.rect(screen, GRAY, button_shade)
+        pygame.draw.rect(screen, SILVER, button)
 
         screen.blit(insert_txt, (48, 152))
     else:
         button = pygame.Rect(20, 140, 200, 50)
 
-        pygame.draw.rect(screen, gray, button_shade)
-        pygame.draw.rect(screen, silver, button)
+        pygame.draw.rect(screen, GRAY, button_shade)
+        pygame.draw.rect(screen, SILVER, button)
         screen.blit(insert_txt, (46, 150))
 
-    img_a = font.render(f'α: {round(angles[0] * radian, 3)}°', True, black)
-    img_b = font.render(f'β: {round(angles[1] * radian, 3)}°', True, black)
-    img_c = font.render(f'σ: {round(angles[2] * radian, 3)}°', True, black)
-    screen.blit(imgY, (20, 60))
-    screen.blit(img_l, (245, 60))
-    screen.blit(img_r, (370, 60))
-    screen.blit(imgX, (20, 20))
-    screen.blit(img_u, (245, 20))
-    screen.blit(img_d, (342, 20))
-    screen.blit(imgZ, (20, 100))
-    screen.blit(img_z, (245, 100))
-    screen.blit(img_x, (327, 100))
-    screen.blit(img_a, (width - 300, 20))
-    screen.blit(img_b, (width - 300, 60))
-    screen.blit(img_c, (width - 300, 100))
-    screen.blit(imgC, (20, height - 80))
-    screen.blit(imgD, (20, height - 40))
+    angle_a = font.render(f'α: {round(angles[0] * RADIAN, 3)}°', True, BLACK)
+    angle_b = font.render(f'β: {round(angles[1] * RADIAN, 3)}°', True, BLACK)
+    angle_c = font.render(f'σ: {round(angles[2] * RADIAN, 3)}°', True, BLACK)
+    screen.blit(y_text, (20, 60))
+    screen.blit(left_text, (245, 60))
+    screen.blit(right_text, (370, 60))
+    screen.blit(x_text, (20, 20))
+    screen.blit(up_text, (245, 20))
+    screen.blit(down_text, (342, 20))
+    screen.blit(z_text, (20, 100))
+    screen.blit(letter_z_text, (245, 100))
+    screen.blit(letter_x_text, (327, 100))
+    screen.blit(angle_a, (WIDTH - 300, 20))
+    screen.blit(angle_b, (WIDTH - 300, 60))
+    screen.blit(angle_c, (WIDTH - 300, 100))
+    screen.blit(camera_text, (20, HEIGHT - 80))
+    screen.blit(depth_text, (20, HEIGHT - 40))
 
     pygame.display.update()
 
