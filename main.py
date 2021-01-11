@@ -166,11 +166,11 @@ while run:
     if keys[pygame.K_z]:
         z_matrix = rotation_z2
         angles[2] -= SPEED
-        z_text = font.render('Z', True, GREEN)
+        letter_z_text = font.render('Z', True, GREEN)
     if keys[pygame.K_x]:
         z_matrix = rotation_z2
         angles[2] += SPEED
-        x_text = font.render('X', True, GREEN)
+        letter_x_text = font.render('X', True, GREEN)
 
     # Position adjustment
     if drag:
